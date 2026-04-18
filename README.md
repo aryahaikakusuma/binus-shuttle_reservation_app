@@ -146,6 +146,3 @@ Core tables: `Users` (incl. Flazz Card number, role), `Routes`, `Bus_Types`, `Sc
 ## License
 
 Academic project — Bina Nusantara University, 2026.
-=======
-test
->>>>>>> a588d4a42dfe06b1e514d062b840ef884c608618
