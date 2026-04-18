@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # BINUS Shuttle — Online Bus Reservation System
 
 Web-based shuttle bus reservation system for Bina Nusantara University with Flazz Card boarding verification.
@@ -71,7 +70,7 @@ Standing capacity formula: `floor(total_seats × 1.5)` — configurable by admin
 ## System Architecture
 
 ```
-┌─────────────┐     REST API     ┌─────────────────┐     ┌───────────┐
+┌─────────────┐     REST API     ┌─────────────────-┐      ┌───────────┐
 │  React.js   │ ◄──────────────► │  Node.js +       │ ◄──►│   MySQL   │
 │  Frontend   │                  │  Express.js      │     │  Database │
 └─────────────┘                  └────────┬─────────┘     └───────────┘
@@ -144,5 +143,4 @@ Core tables: `Users` (incl. Flazz Card number, role), `Routes`, `Bus_Types`, `Sc
 10. Gross et al., *Fundamentals of Queueing Theory*, 4th ed., Wiley, 2008.
 
 ## License
-
-Academic project — Bina Nusantara University, 2026.
+Academic Student Writing — Bina Nusantara University, 2026.
