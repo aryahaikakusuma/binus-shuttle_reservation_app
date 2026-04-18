@@ -1,0 +1,1311 @@
+/* ============================================================
+   1. DESIGN TOKENS
+   ============================================================ */
+:root {
+  --orange-primary: #F89B1F;
+  --orange-deep:    #E8780A;
+  --orange-soft:    #FFF3E0;
+  --blue-cta:       #2D7FD1;
+  --teal-start:     #1E6B7A;
+  --peach-mid:      #D97F4E;
+  --orange-end:     #F89B1F;
+  --green-success:  #2BB673;
+  --red-warn:       #E04A3C;
+  --ink-900:        #1A1D22;
+  --ink-600:        #5B6470;
+  --ink-400:        #9AA3AE;
+  --bg:             #F5F6F8;
+  --card:           #FFFFFF;
+  --border:         #E5E7EB;
+  --font:           'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ============================================================
+   2. RESET
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--ink-900);
+  background: #D0D3D8;
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: var(--font); cursor: pointer; border: none; background: none; padding: 0; }
+input  { font-family: var(--font); border: none; outline: none; background: none; }
+a      { text-decoration: none; color: inherit; }
+ul, ol { list-style: none; margin: 0; padding: 0; }
+img    { display: block; max-width: 100%; }
+
+/* ============================================================
+   3. DESKTOP FRAME + PHONE FRAME
+   ============================================================ */
+#desktop-frame {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background: linear-gradient(135deg, #C9CDD4 0%, #D8DCE3 100%);
+}
+
+#phone-frame {
+  width: 390px;
+  height: 844px;
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.6),
+    0 8px 24px rgba(0,0,0,0.25),
+    0 32px 64px rgba(0,0,0,0.2);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ============================================================
+   4. SCREEN BASE
+   ============================================================ */
+.screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  position: relative;
+  animation: screen-in 180ms ease-out both;
+}
+
+/* ============================================================
+   5. SCROLLABLE BODY
+   ============================================================ */
+.screen-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.screen-body::-webkit-scrollbar { display: none; }
+.screen-body { scrollbar-width: none; }
+
+/* ============================================================
+   6. NAV BAR (sticky top for sub-screens)
+   ============================================================ */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  min-height: 56px;
+  flex-shrink: 0;
+}
+.nav-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink-900);
+  flex: 1;
+}
+
+/* ============================================================
+   7. ICON BUTTON
+   ============================================================ */
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--ink-900);
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+/* ============================================================
+   8. BUTTONS
+   ============================================================ */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  background: var(--orange-primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: background 150ms ease-out, opacity 150ms ease-out;
+}
+.btn-primary:active { background: var(--orange-deep); }
+.btn-primary.btn-disabled,
+.btn-primary[disabled] {
+  background: var(--border);
+  color: var(--ink-400);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-outline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-600);
+  background: var(--card);
+  cursor: pointer;
+}
+.btn-outline.btn-danger {
+  border-color: var(--red-warn);
+  color: var(--red-warn);
+}
+
+/* ============================================================
+   9. STICKY CTA STRIP
+   ============================================================ */
+.sticky-cta {
+  padding: 12px 16px 16px;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgba(16,24,40,0.08);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   10. CARDS
+   ============================================================ */
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(16,24,40,0.06);
+}
+
+/* ============================================================
+   11. FORM FIELDS
+   ============================================================ */
+.field-group { margin-bottom: 10px; }
+.field-group:last-child { margin-bottom: 0; }
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 150ms ease-out, background 150ms ease-out;
+  min-height: 52px;
+}
+.field-row.f-active  { border-color: var(--orange-primary); }
+.field-row.f-valid   { border-color: var(--green-success); background: #F0FDF7; }
+.field-row.f-error   { border-color: var(--red-warn);      background: #FFF5F5; }
+
+.field-icon { flex-shrink: 0; color: var(--ink-400); display: flex; align-items: center; }
+.field-icon.fi-valid  { color: var(--green-success); }
+.field-icon.fi-error  { color: var(--red-warn); }
+.field-icon.fi-orange { color: var(--orange-primary); }
+
+.field-content { flex: 1; min-width: 0; }
+.field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+.field-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.field-value.placeholder { font-weight: 500; color: var(--ink-400); }
+.field-caret { flex-shrink: 0; color: var(--ink-400); display: flex; align-items: center; }
+
+.fields-divider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+}
+.divider-line { flex: 1; border-top: 1.5px dashed var(--border); }
+.swap-btn {
+  width: 32px; height: 32px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-600);
+  box-shadow: 0 1px 4px rgba(16,24,40,0.08);
+  cursor: pointer;
+  transition: border-color 150ms, color 150ms, transform 300ms ease-out;
+}
+.swap-btn:hover { border-color: var(--orange-primary); color: var(--orange-primary); }
+.swap-btn.swapped { transform: rotate(180deg); }
+
+/* Inline error message */
+.field-error-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFF2F2;
+  border: 1px solid #FFCCCB;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--red-warn);
+}
+
+/* Form section divider */
+.form-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 14px 0;
+}
+.form-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+/* ============================================================
+   12. INPUT FIELDS (login)
+   ============================================================ */
+.input-wrap {
+  position: relative;
+  margin-bottom: 12px;
+}
+.input-field {
+  width: 100%;
+  height: 52px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0 44px 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-900);
+  background: var(--bg);
+  transition: border-color 150ms;
+}
+.input-field:focus { border-color: var(--orange-primary); outline: none; }
+.input-field::placeholder { color: var(--ink-400); }
+.input-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-600);
+  margin-bottom: 6px;
+}
+.input-prefix { padding-left: 44px; }
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-400);
+  display: flex; align-items: center;
+  pointer-events: none;
+}
+.input-suffix {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 44px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-400);
+  cursor: pointer;
+  min-width: 44px;
+}
+
+/* ============================================================
+   13. CHIPS & BADGES
+   ============================================================ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.chip-white   { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: #fff; }
+.chip-orange  { background: var(--orange-soft); color: var(--orange-deep); }
+.chip-green   { background: #E8F9F1; color: var(--green-success); }
+.chip-red     { background: #FEECEA; color: var(--red-warn); }
+.chip-gray    { background: var(--bg); color: var(--ink-400); border: 1px solid var(--border); }
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.pill-confirmed  { background: #E8F9F1; color: var(--green-success); }
+.pill-completed  { background: var(--bg); color: var(--ink-400); border: 1px solid var(--border); }
+.pill-cancelled  { background: #FEECEA; color: var(--red-warn); }
+.pill-noshow     { background: var(--orange-soft); color: var(--orange-deep); }
+.pill-seat       { background: #EEF5FF; color: var(--blue-cta); }
+.pill-standing   { background: var(--orange-soft); color: var(--orange-deep); }
+
+/* ============================================================
+   14. HERO BANNER (home)
+   ============================================================ */
+.hero-banner {
+  background: linear-gradient(135deg, var(--teal-start) 0%, var(--peach-mid) 55%, var(--orange-end) 100%);
+  padding: 24px 20px 32px;
+  border-radius: 0 0 24px 24px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -20px;
+  width: 140px; height: 140px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 50%;
+}
+.hero-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; left: 30px;
+  width: 100px; height: 100px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+.hero-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.hero-greeting { color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 500; }
+.hero-name     { color: #fff; font-size: 18px; font-weight: 700; margin: 2px 0 6px; }
+.avatar-circle {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  border: 2px solid rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   15. UPCOMING TRIP CARD (overlaps hero)
+   ============================================================ */
+.upcoming-card {
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(16,24,40,0.12);
+  padding: 16px;
+  margin: -16px 16px 0;
+  position: relative;
+  z-index: 2;
+}
+.upcoming-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.upcoming-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.upcoming-route { font-size: 15px; font-weight: 700; color: var(--ink-900); margin-bottom: 6px; }
+.upcoming-meta  {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ink-600);
+}
+.meta-item strong { color: var(--ink-900); font-weight: 600; }
+
+/* ============================================================
+   16. QUICK ACTIONS
+   ============================================================ */
+.quick-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 8px;
+}
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  cursor: pointer;
+  padding: 8px 4px;
+  border-radius: 12px;
+  transition: background 150ms;
+  min-width: 44px;
+}
+.action-item:active { background: rgba(0,0,0,0.04); }
+.action-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.action-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-600);
+  text-align: center;
+  line-height: 1.3;
+}
+.ai-orange { background: radial-gradient(circle at 35% 35%, #FFE0B2, #FF8C00); color: var(--ink-900); }
+.ai-blue   { background: radial-gradient(circle at 35% 35%, #BBDEFB, #1565C0); color: var(--ink-900); }
+.ai-green  { background: radial-gradient(circle at 35% 35%, #C8E6C9, #2E7D32); color: var(--ink-900); }
+.ai-red    { background: radial-gradient(circle at 35% 35%, #FFCDD2, #B71C1C); color: var(--ink-900); }
+
+/* ============================================================
+   17. SECTION HEADERS
+   ============================================================ */
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-900);
+  padding: 20px 16px 12px;
+}
+.section-title:first-child { padding-top: 16px; }
+
+/* ============================================================
+   18. ROUTE CARDS (home)
+   ============================================================ */
+.route-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+.route-card {
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(16,24,40,0.06);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.route-info { flex: 1; min-width: 0; }
+.route-name { font-size: 13px; font-weight: 700; color: var(--ink-900); margin-bottom: 4px; }
+.route-next { font-size: 12px; color: var(--ink-600); margin-bottom: 6px; }
+.seats-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.seats-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+  width: 60px;
+  flex-shrink: 0;
+}
+.seats-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 300ms ease-out;
+}
+.sf-green  { background: var(--green-success); }
+.sf-orange { background: var(--orange-primary); }
+.sf-red    { background: var(--red-warn); }
+.seats-text { font-size: 11px; color: var(--ink-400); white-space: nowrap; }
+
+/* ============================================================
+   19. ANNOUNCEMENT CARD
+   ============================================================ */
+.announce-card {
+  margin: 16px;
+  background: #EEF5FF;
+  border-left: 3px solid var(--blue-cta);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.announce-icon { color: var(--blue-cta); flex-shrink: 0; margin-top: 1px; }
+.announce-title { font-size: 12px; font-weight: 700; color: var(--blue-cta); margin-bottom: 2px; }
+.announce-body  { font-size: 12px; color: var(--ink-600); line-height: 1.5; }
+
+/* ============================================================
+   20. TAB BAR
+   ============================================================ */
+.tab-bar {
+  display: flex;
+  height: 64px;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgba(16,24,40,0.06);
+  flex-shrink: 0;
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  color: var(--ink-400);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: color 150ms;
+  min-width: 44px;
+  padding: 4px 0;
+}
+.tab-item.active { color: var(--orange-primary); }
+.tab-item .icon { display: block; }
+
+/* ============================================================
+   21. DATE CHIPS (date picker sheet)
+   ============================================================ */
+.date-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 16px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.date-chips::-webkit-scrollbar { display: none; }
+.date-chip {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  cursor: pointer;
+  min-width: 62px;
+  transition: border-color 150ms, background 150ms;
+}
+.date-chip.selected {
+  border-color: var(--orange-primary);
+  background: var(--orange-soft);
+}
+.date-chip-day  { font-size: 11px; font-weight: 600; color: var(--ink-400); }
+.date-chip-num  { font-size: 18px; font-weight: 700; color: var(--ink-900); line-height: 1; }
+.date-chip-mon  { font-size: 11px; font-weight: 600; color: var(--ink-600); }
+.date-chip.selected .date-chip-day { color: var(--orange-deep); }
+.date-chip.selected .date-chip-num { color: var(--orange-primary); }
+
+/* ============================================================
+   22. TIME SLOT ITEMS
+   ============================================================ */
+.time-slot-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 150ms;
+}
+.time-slot-item:last-child { border-bottom: none; }
+.time-slot-item:active,
+.time-slot-item.selected { background: var(--orange-soft); }
+.time-main  {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink-900);
+  width: 56px;
+  flex-shrink: 0;
+}
+.time-slot-item.selected .time-main { color: var(--orange-primary); }
+.time-info  { flex: 1; }
+.time-route { font-size: 12px; font-weight: 600; color: var(--ink-900); margin-bottom: 2px; }
+.time-seats { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-600); }
+.seat-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0;
+}
+.dot-green  { background: var(--green-success); }
+.dot-orange { background: var(--orange-primary); }
+.dot-red    { background: var(--red-warn); }
+.time-check { color: var(--orange-primary); display: flex; align-items: center; }
+
+/* ============================================================
+   23. TRIP SUMMARY STRIP
+   ============================================================ */
+.trip-summary {
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(16,24,40,0.06);
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 4px;
+}
+.trip-summary.ts-valid { border-color: var(--orange-primary); }
+.trip-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: var(--orange-soft);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--orange-primary);
+  flex-shrink: 0;
+}
+.trip-route { font-size: 13px; font-weight: 700; color: var(--ink-900); margin-bottom: 3px; }
+.trip-meta  { font-size: 12px; color: var(--ink-600); }
+.trip-meta strong { color: var(--ink-900); font-weight: 600; }
+
+/* ============================================================
+   24. BOTTOM SHEET
+   ============================================================ */
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+}
+.sheet-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.bottom-sheet {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-height: 72%;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 200ms ease-out;
+}
+.bottom-sheet::-webkit-scrollbar { display: none; }
+.sheet-backdrop.open .bottom-sheet { transform: translateY(0); }
+.sheet-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: 999px;
+  margin: 12px auto 6px;
+}
+.sheet-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-900);
+  padding: 8px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.sheet-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 150ms;
+  min-height: 52px;
+}
+.sheet-item:last-child { border-bottom: none; }
+.sheet-item:active,
+.sheet-item.selected { background: var(--orange-soft); }
+.sheet-item-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+.sheet-item-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-600);
+  flex-shrink: 0;
+}
+.sheet-item.selected .sheet-item-icon { background: var(--orange-soft); color: var(--orange-primary); }
+.sheet-item-name { font-size: 14px; font-weight: 600; color: var(--ink-900); }
+.sheet-check { color: var(--orange-primary); display: flex; align-items: center; }
+
+/* ============================================================
+   25. BUS LAYOUT (seat selection)
+   ============================================================ */
+.bus-wrap {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.bus-outer {
+  background: var(--card);
+  border-radius: 20px;
+  border: 2px solid var(--border);
+  padding: 16px 12px;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 2px 12px rgba(16,24,40,0.08);
+}
+.driver-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.driver-seat {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-400);
+}
+.seat-rows { display: flex; flex-direction: column; gap: 6px; }
+.seat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+.seat-aisle { width: 20px; flex-shrink: 0; }
+.seat {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-600);
+  cursor: pointer;
+  transition: background 150ms, border-color 150ms, color 150ms;
+  flex-shrink: 0;
+  min-width: 40px;
+}
+.seat:hover:not(.seat-occupied) { border-color: var(--orange-primary); }
+.seat.seat-selected {
+  background: var(--orange-primary);
+  border-color: var(--orange-primary);
+  color: #fff;
+}
+.seat.seat-occupied {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--ink-400);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.seat-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 12px 16px 0;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-600);
+}
+.legend-swatch {
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.ls-available { border: 1.5px solid var(--border); background: var(--card); }
+.ls-selected  { background: var(--orange-primary); border: 1.5px solid var(--orange-primary); }
+.ls-occupied  { background: var(--bg); border: 1.5px solid var(--border); opacity: 0.5; }
+
+/* Standing area */
+.standing-section {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 340px;
+  padding: 16px;
+  background: var(--card);
+  border-radius: 16px;
+  border: 2px dashed var(--border);
+}
+.standing-header {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-400);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+.standing-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.standing-slot {
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-600);
+  cursor: pointer;
+  transition: background 150ms, border-color 150ms, color 150ms;
+}
+.standing-slot:hover { border-color: var(--orange-primary); }
+.standing-slot.seat-selected {
+  background: var(--orange-primary);
+  border-color: var(--orange-primary);
+  color: #fff;
+}
+
+/* Seat strip (sticky bottom on seat screen) */
+.seat-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 16px;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgba(16,24,40,0.08);
+  flex-shrink: 0;
+}
+.seat-strip-label {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ink-600);
+}
+.seat-strip-label strong { color: var(--ink-900); font-weight: 700; font-size: 15px; }
+.seat-strip .btn-primary { width: auto; flex: 1; }
+
+/* ============================================================
+   26. CONFIRM SCREEN
+   ============================================================ */
+.summary-card {
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(16,24,40,0.06);
+  overflow: hidden;
+}
+.summary-top {
+  background: linear-gradient(135deg, var(--teal-start), var(--orange-end));
+  padding: 16px;
+}
+.summary-route-label { color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.summary-route-name  { color: #fff; font-size: 16px; font-weight: 700; }
+.summary-body { padding: 14px 16px; }
+.summary-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-600);
+  margin-bottom: 8px;
+}
+.summary-row:last-child { margin-bottom: 0; }
+.summary-row strong { color: var(--ink-900); font-weight: 600; }
+
+.passenger-card {
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(16,24,40,0.06);
+  padding: 16px;
+}
+.pax-header { font-size: 12px; font-weight: 700; color: var(--ink-400); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.pax-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.pax-row:last-child { margin-bottom: 0; }
+.pax-label { color: var(--ink-600); }
+.pax-value { font-weight: 600; color: var(--ink-900); }
+
+.accordion {
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-900);
+}
+.accordion-icon { color: var(--ink-400); transition: transform 200ms ease-out; display: flex; align-items: center; }
+.accordion-icon.open { transform: rotate(180deg); }
+.accordion-body {
+  padding: 0 16px 14px;
+  font-size: 13px;
+  color: var(--ink-600);
+  line-height: 1.6;
+  border-top: 1px solid var(--border);
+}
+
+/* ============================================================
+   27. E-TICKET
+   ============================================================ */
+.ticket-screen-body {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ticket-card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(16,24,40,0.1);
+  overflow: visible;
+  position: relative;
+}
+.ticket-top {
+  background: linear-gradient(135deg, var(--teal-start) 0%, var(--orange-end) 100%);
+  padding: 20px 20px 24px;
+  border-radius: 20px 20px 0 0;
+}
+.ticket-brand { color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.ticket-id    { color: #fff; font-size: 20px; font-weight: 700; font-family: monospace; letter-spacing: 1px; }
+
+/* Perforated divider */
+.ticket-perf {
+  position: relative;
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+.ticket-perf::before,
+.ticket-perf::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.ticket-perf::before { left: -10px; }
+.ticket-perf::after  { right: -10px; }
+/* Dashed line over the solid one */
+.ticket-perf-line {
+  position: absolute;
+  top: 50%; left: 16px; right: 16px;
+  transform: translateY(-50%);
+  border-top: 2px dashed var(--border);
+}
+
+.ticket-body {
+  padding: 20px;
+}
+.ticket-route-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.ticket-stop { flex: 1; }
+.ticket-stop-label { font-size: 10px; font-weight: 700; color: var(--ink-400); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.ticket-stop-name  { font-size: 14px; font-weight: 700; color: var(--ink-900); }
+.ticket-stop-time  { font-size: 18px; font-weight: 700; color: var(--orange-primary); }
+.ticket-arrow { color: var(--ink-400); flex-shrink: 0; display: flex; align-items: center; }
+.ticket-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.td-item {}
+.td-label { font-size: 10px; font-weight: 700; color: var(--ink-400); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+.td-value { font-size: 13px; font-weight: 600; color: var(--ink-900); }
+
+.qr-placeholder {
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1.5px dashed var(--border);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.qr-icon    { color: var(--ink-400); }
+.qr-text    { font-size: 12px; font-weight: 600; color: var(--ink-400); }
+.qr-subtext { font-size: 11px; color: var(--ink-400); }
+
+/* Ticket action buttons */
+.ticket-actions {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px 16px;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   28. BOOKINGS LIST
+   ============================================================ */
+.sub-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sub-tab {
+  flex: 1;
+  height: 36px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid var(--border);
+  color: var(--ink-600);
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 150ms;
+}
+.sub-tab.active {
+  background: var(--orange-soft);
+  border-color: var(--orange-primary);
+  color: var(--orange-deep);
+}
+.bookings-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.booking-card {
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(16,24,40,0.06);
+  padding: 14px 16px;
+}
+.booking-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+.booking-route { font-size: 14px; font-weight: 700; color: var(--ink-900); }
+.booking-meta  { font-size: 12px; color: var(--ink-600); margin-top: 3px; }
+.booking-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.empty-state {
+  padding: 48px 32px;
+  text-align: center;
+  color: var(--ink-400);
+  font-size: 13px;
+  font-weight: 500;
+}
+.empty-state-icon { margin: 0 auto 12px; color: var(--ink-400); display: flex; justify-content: center; }
+
+/* ============================================================
+   29. PROFILE SCREEN
+   ============================================================ */
+.profile-header {
+  background: var(--card);
+  padding: 28px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.profile-avatar {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal-start), var(--orange-end));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 700; color: #fff;
+}
+.profile-name { font-size: 18px; font-weight: 700; color: var(--ink-900); }
+.profile-sub  { font-size: 13px; color: var(--ink-600); }
+
+.profile-list { padding: 8px 0; }
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 150ms;
+  min-height: 56px;
+  border-bottom: 1px solid var(--border);
+}
+.profile-row:last-child { border-bottom: none; }
+.profile-row:active { background: var(--bg); }
+.profile-row-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-600);
+  flex-shrink: 0;
+}
+.profile-row-label { flex: 1; font-size: 14px; font-weight: 600; color: var(--ink-900); }
+.profile-row-arrow { color: var(--ink-400); display: flex; align-items: center; }
+.profile-row.danger .profile-row-label { color: var(--red-warn); }
+.profile-row.danger .profile-row-icon  { background: #FEECEA; color: var(--red-warn); }
+
+/* Strike drawer */
+.strike-drawer {
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 16px 20px;
+}
+.strike-drawer-title { font-size: 13px; font-weight: 700; color: var(--ink-900); margin-bottom: 12px; }
+.no-strikes { font-size: 13px; color: var(--green-success); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
+/* ============================================================
+   30. LOADING OVERLAY
+   ============================================================ */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.85);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.loading-spinner { color: var(--orange-primary); animation: spin 0.8s linear infinite; }
+.loading-text { font-size: 13px; font-weight: 600; color: var(--ink-600); }
+
+/* ============================================================
+   31. LOGIN SCREEN
+   ============================================================ */
+.login-screen {
+  background: var(--card);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 48px 24px 32px;
+}
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.logo-text { display: flex; align-items: baseline; gap: 4px; }
+.logo-binus   { font-size: 28px; font-weight: 700; color: var(--ink-900); letter-spacing: -0.5px; }
+.logo-shuttle { font-size: 28px; font-weight: 700; color: var(--orange-primary); letter-spacing: -0.5px; }
+.logo-icon    { color: var(--orange-primary); }
+.login-subtitle { font-size: 14px; color: var(--ink-600); font-weight: 500; margin-bottom: 36px; }
+.login-form { flex: 1; display: flex; flex-direction: column; }
+.login-form .btn-primary { margin-top: 8px; }
+.login-forgot {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--blue-cta);
+  font-weight: 600;
+  cursor: pointer;
+}
+.login-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 32px;
+  font-size: 11px;
+  color: var(--ink-400);
+  font-weight: 500;
+}
+
+/* ============================================================
+   32. ICON SIZES (utility)
+   ============================================================ */
+.icon { display: inline-flex; align-items: center; justify-content: center; }
+.icon svg { display: block; }
+
+/* ============================================================
+   33. ANIMATIONS
+   ============================================================ */
+@keyframes screen-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen              { animation: none; }
+  .sheet-backdrop,
+  .bottom-sheet,
+  .swap-btn,
+  .accordion-icon      { transition: none; }
+  .loading-spinner     { animation: none; }
+}

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BINUS Shuttle — Home Screen Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1a1d22;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 24px 16px;
+    font-family: 'Inter', system-ui, sans-serif;
+    gap: 32px;
+  }
+  h1 { color: #fff; font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+  .subtitle { color: #9AA3AE; font-size: 13px; text-align: center; margin-bottom: 24px; }
+  .compare { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .phone-frame {
+    width: 390px;
+    min-height: 700px;
+    background: #F5F6F8;
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    border: 8px solid #2a2d32;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .phone-frame:hover { transform: translateY(-4px); box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+  .phone-frame.selected {
+    border-color: #F89B1F;
+    box-shadow: 0 0 0 4px rgba(248,155,31,0.4), 0 24px 64px rgba(0,0,0,0.5);
+  }
+  .option-label {
+    text-align: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 12px;
+  }
+  .option-desc {
+    text-align: center;
+    color: #9AA3AE;
+    font-size: 12px;
+    margin-top: 4px;
+    max-width: 390px;
+  }
+  .selected-badge {
+    display: none;
+    background: #F89B1F;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+    text-align: center;
+    margin-top: 8px;
+  }
+  .phone-frame.selected + .option-label + .option-desc + .selected-badge { display: inline-block; }
+
+  /* ── Design System ── */
+  :root {
+    --orange: #F89B1F;
+    --orange-deep: #E8780A;
+    --orange-soft: #FFF3E0;
+    --blue: #2D7FD1;
+    --teal: #1E6B7A;
+    --peach: #D97F4E;
+    --green: #2BB673;
+    --red: #E04A3C;
+    --ink900: #1A1D22;
+    --ink600: #5B6470;
+    --ink400: #9AA3AE;
+    --bg: #F5F6F8;
+    --card: #FFFFFF;
+    --border: #E5E7EB;
+  }
+
+  /* ── Screen content ── */
+  .screen { background: var(--bg); min-height: 100%; }
+
+  /* STATUS BAR */
+  .status-bar {
+    height: 44px;
+    background: var(--teal);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* HEADER BANNER */
+  .header-banner {
+    background: linear-gradient(135deg, #1E6B7A 0%, #D97F4E 55%, #F89B1F 100%);
+    padding: 20px 20px 28px;
+    border-radius: 0 0 24px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header-banner::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .avatar-circle {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    border: 2px solid rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: #fff; font-weight: 700;
+  }
+  .header-right { text-align: right; }
+  .greeting { color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 500; }
+  .user-name { color: #fff; font-size: 16px; font-weight: 700; }
+  .role-chip {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-top: 4px;
+  }
+
+  /* UPCOMING TRIP CARD */
+  .section-pad { padding: 0 16px; }
+  .upcoming-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    margin: -14px 16px 0;
+    box-shadow: 0 2px 12px rgba(16,24,40,0.1);
+    border: 1px solid var(--border);
+    position: relative;
+    z-index: 1;
+  }
+  .upcoming-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .upcoming-label { font-size: 11px; font-weight: 600; color: var(--ink400); text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-badge {
+    background: #E8F9F1; color: var(--green);
+    font-size: 11px; font-weight: 700;
+    padding: 3px 8px; border-radius: 999px;
+  }
+  .route-name { font-size: 15px; font-weight: 700; color: var(--ink900); margin-bottom: 4px; }
+  .trip-meta { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .trip-meta span { font-size: 12px; color: var(--ink600); }
+  .trip-meta strong { font-weight: 600; color: var(--ink900); }
+  .view-ticket-btn {
+    width: 100%;
+    background: var(--orange-soft);
+    color: var(--orange);
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* QUICK ACTIONS */
+  .section-title { font-size: 14px; font-weight: 700; color: var(--ink900); margin: 20px 16px 12px; }
+  .quick-actions { display: flex; justify-content: space-around; padding: 0 8px; margin-bottom: 4px; }
+  .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+  .action-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .icon-book { background: radial-gradient(circle at 35% 35%, #FFE0B2, #FF8C00); }
+  .icon-booking { background: radial-gradient(circle at 35% 35%, #B3E5FC, #0277BD); }
+  .icon-ticket { background: radial-gradient(circle at 35% 35%, #C8E6C9, #388E3C); }
+  .icon-penalty { background: radial-gradient(circle at 35% 35%, #F8BBD0, #C2185B); }
+  .action-label { font-size: 11px; font-weight: 600; color: var(--ink600); text-align: center; }
+
+  /* ROUTE CARDS */
+  .routes-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .route-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(16,24,40,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid var(--border);
+  }
+  .route-left { flex: 1; }
+  .route-name-text { font-size: 13px; font-weight: 700; color: var(--ink900); margin-bottom: 3px; }
+  .route-info { display: flex; gap: 8px; align-items: center; }
+  .route-time { font-size: 12px; color: var(--ink600); }
+  .route-badge {
+    font-size: 10px; font-weight: 600;
+    padding: 2px 7px; border-radius: 999px;
+  }
+  .badge-seat { background: #E8F4FD; color: var(--blue); }
+  .badge-overflow { background: var(--orange-soft); color: var(--orange-deep); }
+  .seats-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .seats-bar { height: 4px; border-radius: 999px; background: var(--border); flex: 1; max-width: 60px; }
+  .seats-fill { height: 100%; border-radius: 999px; background: var(--green); }
+  .seats-text { font-size: 11px; color: var(--ink400); }
+  .book-btn {
+    background: var(--orange); color: #fff;
+    border: none; border-radius: 10px;
+    padding: 8px 14px; font-size: 12px; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+  }
+
+  /* ANNOUNCEMENT */
+  .announcement {
+    margin: 0 16px 20px;
+    background: #EEF5FF;
+    border-left: 3px solid var(--blue);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .announce-title { font-size: 12px; font-weight: 700; color: var(--blue); margin-bottom: 2px; }
+  .announce-body { font-size: 12px; color: var(--ink600); }
+
+  /* BOTTOM TAB BAR */
+  .tab-bar {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 4px;
+    box-shadow: 0 -4px 16px rgba(16,24,40,0.08);
+  }
+  .tab {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 3px; padding: 2px 0;
+  }
+  .tab-icon { font-size: 20px; }
+  .tab-label { font-size: 10px; font-weight: 600; }
+  .tab.active .tab-icon, .tab.active .tab-label { color: var(--orange); }
+  .tab:not(.active) .tab-icon, .tab:not(.active) .tab-label { color: var(--ink400); }
+
+  /* Scrollable content */
+  .scroll-content { overflow-y: auto; height: calc(100% - 44px - 64px); }
+  .scroll-content::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<h1>BINUS Shuttle — Home Screen</h1>
+<p class="subtitle">Validating the visual design direction before building. Does this match what you envisioned?</p>
+
+<div class="compare">
+
+  <!-- PHONE MOCKUP -->
+  <div style="display:flex;flex-direction:column;align-items:center;">
+    <div class="phone-frame" id="frame-a" onclick="selectOption('a')">
+      <div class="screen">
+
+        <!-- Status bar -->
+        <div class="status-bar">
+          <span>9:41</span>
+          <span style="font-size:16px;">●●●●</span>
+          <span>🔋</span>
+        </div>
+
+        <!-- Scrollable content -->
+        <div class="scroll-content">
+
+          <!-- Header Banner -->
+          <div class="header-banner">
+            <div class="header-top">
+              <div>
+                <div class="greeting">Selamat Sore,</div>
+                <div class="user-name">Arya Haika Kusuma</div>
+                <div class="role-chip">Student · Undergraduate</div>
+              </div>
+              <div class="avatar-circle">A</div>
+            </div>
+          </div>
+
+          <!-- Upcoming trip card (overlaps header) -->
+          <div class="upcoming-card">
+            <div class="upcoming-header">
+              <span class="upcoming-label">Perjalanan Berikutnya</span>
+              <span class="status-badge">✓ Confirmed</span>
+            </div>
+            <div class="route-name">Binus Square → Anggrek</div>
+            <div class="trip-meta">
+              <span>📅 <strong>Rabu, 16 Apr</strong></span>
+              <span>🕐 <strong>07:30</strong></span>
+              <span>💺 Seat 12A</span>
+            </div>
+            <button class="view-ticket-btn">Lihat E-Tiket →</button>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="section-title">Layanan Cepat</div>
+          <div class="quick-actions">
+            <div class="action-item">
+              <div class="action-icon icon-book">🚌</div>
+              <div class="action-label">Pesan<br>Shuttle</div>
+            </div>
+            <div class="action-item">
+              <div class="action-icon icon-booking">📋</div>
+              <div class="action-label">Pemesanan<br>Saya</div>
+            </div>
+            <div class="action-item">
+              <div class="action-icon icon-ticket">🎫</div>
+              <div class="action-label">E-Tiket<br>Saya</div>
+            </div>
+            <div class="action-item">
+              <div class="action-icon icon-penalty">⚠️</div>
+              <div class="action-label">Status<br>Penalti</div>
+            </div>
+          </div>
+
+          <!-- Routes -->
+          <div class="section-title">Rute Shuttle</div>
+          <div class="routes-list">
+            <div class="route-card">
+              <div class="route-left">
+                <div class="route-name-text">Alam Sutera ⇄ Anggrek</div>
+                <div class="route-info">
+                  <span class="route-time">Next: 07:30</span>
+                  <span class="route-badge badge-seat">Seat Only</span>
+                </div>
+                <div class="seats-row">
+                  <div class="seats-bar"><div class="seats-fill" style="width:70%"></div></div>
+                  <span class="seats-text">12 seats left</span>
+                </div>
+              </div>
+              <button class="book-btn">Pesan</button>
+            </div>
+            <div class="route-card">
+              <div class="route-left">
+                <div class="route-name-text">Bekasi ⇄ Anggrek</div>
+                <div class="route-info">
+                  <span class="route-time">Next: 08:00</span>
+                  <span class="route-badge badge-seat">Seat Only</span>
+                </div>
+                <div class="seats-row">
+                  <div class="seats-bar"><div class="seats-fill" style="width:40%"></div></div>
+                  <span class="seats-text">24 seats left</span>
+                </div>
+              </div>
+              <button class="book-btn">Pesan</button>
+            </div>
+            <div class="route-card">
+              <div class="route-left">
+                <div class="route-name-text">Binus Square ⇄ Anggrek</div>
+                <div class="route-info">
+                  <span class="route-time">Next: 07:30</span>
+                  <span class="route-badge badge-overflow">Seat + Standing</span>
+                </div>
+                <div class="seats-row">
+                  <div class="seats-bar"><div class="seats-fill" style="width:10%; background: #E04A3C;"></div></div>
+                  <span class="seats-text">2 seats left</span>
+                </div>
+              </div>
+              <button class="book-btn">Pesan</button>
+            </div>
+          </div>
+
+          <!-- Announcement -->
+          <div class="announcement">
+            <div class="announce-title">📣 Informasi Terbaru</div>
+            <div class="announce-body">New: overflow seats now available on Binus Square route.</div>
+          </div>
+
+        </div><!-- /scroll -->
+
+        <!-- Tab bar -->
+        <div class="tab-bar">
+          <div class="tab active">
+            <div class="tab-icon">🏠</div>
+            <div class="tab-label">Home</div>
+          </div>
+          <div class="tab">
+            <div class="tab-icon">📋</div>
+            <div class="tab-label">Pemesanan</div>
+          </div>
+          <div class="tab">
+            <div class="tab-icon">🎫</div>
+            <div class="tab-label">E-Tiket</div>
+          </div>
+          <div class="tab">
+            <div class="tab-icon">👤</div>
+            <div class="tab-label">Profil</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="option-label">Home Screen Preview</div>
+    <div class="option-desc">Teal→Peach→Orange gradient header · Orange CTAs · BinusMaya icon grid</div>
+  </div>
+
+</div>
+
+<script>
+function selectOption(choice) {
+  document.querySelectorAll('.phone-frame').forEach(f => f.classList.remove('selected'));
+  document.getElementById('frame-' + choice).classList.add('selected');
+  if (window.recordEvent) recordEvent(choice, 'Home screen looks good');
+}
+</script>
+</body>
+</html>
