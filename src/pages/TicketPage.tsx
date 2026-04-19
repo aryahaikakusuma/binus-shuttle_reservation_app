@@ -130,13 +130,15 @@ export default function TicketPage() {
               </div>
             </div>
 
-            {/* Boarding instruction */}
-            <div className="bg-muted rounded-xl p-3 flex items-center gap-3">
-              <Smartphone className="w-5 h-5 text-primary shrink-0" />
-              <p className="text-caption text-ink">
-                <span className="font-semibold">Tap Flazz Card</span> pada perangkat EDC saat boarding
-              </p>
-            </div>
+            {/* Boarding instruction — only for upcoming (confirmed) bookings */}
+            {booking.status === 'confirmed' && (
+              <div className="bg-muted rounded-xl p-3 flex items-center gap-3">
+                <Smartphone className="w-5 h-5 text-primary shrink-0" />
+                <p className="text-caption text-ink">
+                  <span className="font-semibold">Tap Flazz Card</span> pada perangkat EDC saat boarding
+                </p>
+              </div>
+            )}
 
             <div className="flex justify-center">
               <span className={`px-4 py-1.5 rounded-full text-caption font-bold ${statusStyle}`}>

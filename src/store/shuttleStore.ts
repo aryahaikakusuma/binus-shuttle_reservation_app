@@ -38,7 +38,21 @@ export const ROUTE_PAIRS: { a: string; b: string }[] = [
   { a: 'Kemanggisan', b: 'BINUS ASO' },
   { a: 'Binus Square', b: 'Kemanggisan' },
   { a: 'Binus Square', b: 'Alam Sutera' },
+  { a: 'Binus Square', b: 'BINUS ASO' },
+  { a: 'Binus Square', b: 'JWC' },
 ];
+
+/**
+ * Kijang and Syahdan are intermediate stops that only exist on the
+ * Binus Square ⇄ Kemanggisan corridor. All other Kemanggisan routes
+ * resolve to Anggrek.
+ */
+export function routeUsesKemanggisanSubstops(from: string, to: string): boolean {
+  const a = normalizeStop(from);
+  const b = normalizeStop(to);
+  return (a === 'Binus Square' && b === 'Kemanggisan') ||
+         (a === 'Kemanggisan' && b === 'Binus Square');
+}
 
 export function normalizeStop(stop: string): string {
   if (stop.startsWith('Kemanggisan')) return 'Kemanggisan';
@@ -97,6 +111,18 @@ const SCHEDULES_BY_ROUTE: Record<string, RouteSchedule[]> = {
     { time: '09:00', busType: 'elf' },
     { time: '14:00', busType: 'elf' },
     { time: '17:00', busType: 'elf' },
+  ],
+  'Binus Square|BINUS ASO': [
+    { time: '07:30', busType: 'elf' },
+    { time: '10:00', busType: 'elf' },
+    { time: '14:00', busType: 'elf' },
+    { time: '17:00', busType: 'elf' },
+  ],
+  'Binus Square|JWC': [
+    { time: '07:00', busType: 'elf' },
+    { time: '09:30', busType: 'elf' },
+    { time: '13:30', busType: 'elf' },
+    { time: '17:30', busType: 'elf' },
   ],
 };
 
@@ -222,7 +248,19 @@ export function getSeatsRemaining(
 }
 
 // ── Priority seat logic ────────────────────────────────────────────────────────
-export const PRIORITY_SEAT_NUMBERS = new Set([1, 2]);
+// Elf has only 1 priority seat (seat 1). Minibus and Bus Medium have 2 (seats 1 and 2).
+export const PRIORITY_SEATS_BY_BUS: Record<BusType, Set<number>> = {
+  elf: new Set([1]),
+  minibus: new Set([1, 2]),
+  bus_medium: new Set([1, 2]),
+};
+
+export function getPrioritySeats(busType: BusType): Set<number> {
+  return PRIORITY_SEATS_BY_BUS[busType];
+}
+
+// Legacy export kept for backward compatibility (defaults to bus_medium set).
+export const PRIORITY_SEAT_NUMBERS = PRIORITY_SEATS_BY_BUS.bus_medium;
 
 export function arePrioritySeatsReleased(date: string, time: string): boolean {
   const today = getLocalDateString(0);
@@ -253,7 +291,7 @@ export function isPastH1Deadline(booking: Booking): boolean {
 const SEED_BOOKINGS: Booking[] = [
   {
     id: 'BNS-2024-001',
-    from: 'Kemanggisan Anggrek',
+    from: 'Kemanggisan (Anggrek)',
     to: 'Alam Sutera',
     date: getLocalDateString(1),
     departure: '07:30',

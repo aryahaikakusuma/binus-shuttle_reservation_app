@@ -1,61 +1,66 @@
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   useShuttleStore,
   isBinusSquareRoute,
   getOccupiedSeats,
   BUS_CONFIGS,
-  PRIORITY_SEAT_NUMBERS,
+  getPrioritySeats,
   arePrioritySeatsReleased,
   BusType,
 } from '@/store/shuttleStore';
-import { ArrowLeft, CircleDot, Star } from 'lucide-react';
+import { ArrowLeft, CircleDot, ShieldCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 // ── Seat layout definitions ───────────────────────────────────────────────────
-type SeatDef = { num: number; label: string } | null;
+// Matches the "Pembagian Kursi" spec: asymmetric Elf with driver-row priority,
+// Minibus with 6 left + 6 right + 4-seat back bench, Bus Medium as 2+2 × 8.
+type SeatDef = { num: number; label: string; lesehan?: boolean } | null;
+type SeatLayout = { rows: SeatDef[][]; hasElfDivider?: boolean };
 
-function buildElfLayout(): SeatDef[][] {
-  return [1, 2].map((row) => [
-    { num: (row - 1) * 4 + 1, label: `${row}A` },
-    { num: (row - 1) * 4 + 2, label: `${row}B` },
-    null,
-    { num: (row - 1) * 4 + 3, label: `${row}C` },
-    { num: (row - 1) * 4 + 4, label: `${row}D` },
-  ]);
+function buildElfLayout(): SeatLayout {
+  // Row 0: priority seat (1) alone on the driver row
+  // After divider:
+  //   Row 1:  _   [2]
+  //   Row 2: [3]  [4]
+  //   Row 3: [5]  [6]
+  //   Row 4: [7]  [8]
+  const rows: SeatDef[][] = [
+    [{ num: 1, label: '1' }, null, null],
+    [null, null, { num: 2, label: '2' }],
+    [{ num: 3, label: '3' }, null, { num: 4, label: '4' }],
+    [{ num: 5, label: '5' }, null, { num: 6, label: '6' }],
+    [{ num: 7, label: '7' }, null, { num: 8, label: '8' }],
+  ];
+  return { rows, hasElfDivider: true };
 }
 
-function buildMinibusLayout(): SeatDef[][] {
+function buildMinibusLayout(isBinusSquare: boolean): SeatLayout {
+  // 6 left + 6 right column pairs, then a 4-seat back bench.
+  // On Binus Square routes, half of the seats are "Duduk Lesehan" (floor seating).
   const rows: SeatDef[][] = [];
-  // Section A (forward): rows 1-3, 2 seats (window only, big aisle)
-  for (let r = 1; r <= 3; r++) {
+  for (let r = 1; r <= 6; r++) {
+    const leftNum = (r - 1) * 2 + 1;
+    const rightNum = (r - 1) * 2 + 2;
+    // Mirror the reference: top-left + bottom-right are lesehan on Binus Square.
+    const leftLesehan = isBinusSquare && r <= 3;
+    const rightLesehan = isBinusSquare && r >= 4;
     rows.push([
-      { num: (r - 1) * 2 + 1, label: `${r}A` },
+      { num: leftNum, label: `${leftNum}`, lesehan: leftLesehan },
       null,
-      null,
-      { num: (r - 1) * 2 + 2, label: `${r}B` },
+      { num: rightNum, label: `${rightNum}`, lesehan: rightLesehan },
     ]);
   }
-  // Back bench: row 4, 4 seats
   rows.push([
-    { num: 7, label: '4A' },
-    { num: 8, label: '4B' },
-    { num: 9, label: '4C' },
-    { num: 10, label: '4D' },
+    { num: 13, label: '13' },
+    { num: 14, label: '14' },
+    { num: 15, label: '15' },
+    { num: 16, label: '16' },
   ]);
-  // Section B (cross): rows 5-7
-  for (let r = 5; r <= 7; r++) {
-    rows.push([
-      { num: (r - 5) * 2 + 11, label: `${r}A` },
-      null,
-      null,
-      { num: (r - 5) * 2 + 12, label: `${r}B` },
-    ]);
-  }
-  return rows;
+  return { rows };
 }
 
-function buildBusMediumLayout(): SeatDef[][] {
+function buildBusMediumLayout(): SeatLayout {
   const rows: SeatDef[][] = [];
   for (let r = 1; r <= 7; r++) {
     rows.push([
@@ -74,12 +79,12 @@ function buildBusMediumLayout(): SeatDef[][] {
     null,
     null,
   ]);
-  return rows;
+  return { rows };
 }
 
-function getLayout(busType: BusType): SeatDef[][] {
+function getLayout(busType: BusType, isBinusSquare: boolean): SeatLayout {
   if (busType === 'elf') return buildElfLayout();
-  if (busType === 'minibus') return buildMinibusLayout();
+  if (busType === 'minibus') return buildMinibusLayout(isBinusSquare);
   return buildBusMediumLayout();
 }
 
@@ -109,15 +114,17 @@ export default function SeatsPage() {
   const busType = currentBooking.busType ?? 'bus_medium';
   const config = BUS_CONFIGS[busType];
   const totalSeats = config.seatCount;
-  const showStanding = isBinusSquareRoute(currentBooking.from, currentBooking.to) && config.standingAllowed;
+  const isBinusSquare = isBinusSquareRoute(currentBooking.from, currentBooking.to);
+  const showStanding = isBinusSquare && config.standingAllowed;
   const standingTotal = config.standingCount;
+  const prioritySet = useMemo(() => getPrioritySeats(busType), [busType]);
 
   const occupied = useMemo(
     () => getOccupiedSeats(currentBooking.from, currentBooking.to, currentBooking.date, currentBooking.time, totalSeats),
     [currentBooking.from, currentBooking.to, currentBooking.date, currentBooking.time, totalSeats]
   );
 
-  const layout = useMemo(() => getLayout(busType), [busType]);
+  const layout = useMemo(() => getLayout(busType, isBinusSquare), [busType, isBinusSquare]);
   const selectedSeat = currentBooking.seat;
   const priorityReleased = arePrioritySeatsReleased(currentBooking.date, currentBooking.time);
   const isMahasiswa = user.role === 'mahasiswa';
@@ -126,7 +133,7 @@ export default function SeatsPage() {
 
   const handleSeatTap = (seatNum: number, label: string) => {
     if (occupied.has(seatNum)) return;
-    const isPriority = PRIORITY_SEAT_NUMBERS.has(seatNum);
+    const isPriority = prioritySet.has(seatNum);
     if (isPriority && isMahasiswa && !priorityReleased) return;
     setCurrentBooking({ seat: selectedSeat === label ? null : label });
   };
@@ -136,15 +143,16 @@ export default function SeatsPage() {
     setCurrentBooking({ seat: selectedSeat === label ? null : label });
   };
 
-  const getSeatStyle = (seatNum: number, label: string): string => {
-    const isPriority = PRIORITY_SEAT_NUMBERS.has(seatNum);
+  const getSeatStyle = (seatNum: number, label: string, lesehan: boolean): string => {
+    const isPriority = prioritySet.has(seatNum);
     const lockedForMahasiswa = isPriority && isMahasiswa && !priorityReleased;
     if (occupied.has(seatNum) || lockedForMahasiswa) {
       return 'bg-muted text-muted-foreground cursor-not-allowed';
     }
     if (selectedSeat === label) return 'gradient-orange text-primary-foreground';
-    if (isPriority) return 'bg-card border-2 border-primary/40 text-ink-light hover:border-primary cursor-pointer';
-    return 'bg-card border-2 border-border text-ink-light hover:border-primary/50 cursor-pointer';
+    if (isPriority) return 'bg-card border-2 border-primary text-primary hover:bg-primary/5 cursor-pointer';
+    if (lesehan) return 'bg-[hsl(48_96%_58%)] text-ink hover:brightness-95 cursor-pointer border-2 border-[hsl(42_90%_50%)]';
+    return 'bg-primary/90 text-primary-foreground hover:bg-primary cursor-pointer border-2 border-primary';
   };
 
   return (
@@ -165,8 +173,20 @@ export default function SeatsPage() {
       {/* Legend */}
       <div className="flex flex-wrap gap-3 px-5 mb-4">
         <div className="flex items-center gap-1.5">
-          <div className="w-5 h-5 rounded bg-card border-2 border-border" />
-          <span className="text-caption text-ink-light">Tersedia</span>
+          <div className="w-5 h-5 rounded bg-primary/90 border-2 border-primary" />
+          <span className="text-caption text-ink-light">Duduk Biasa</span>
+        </div>
+        {busType === 'minibus' && isBinusSquare && (
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded bg-[hsl(48_96%_58%)] border-2 border-[hsl(42_90%_50%)]" />
+            <span className="text-caption text-ink-light">Duduk Lesehan</span>
+          </div>
+        )}
+        <div className="flex items-center gap-1.5">
+          <div className="w-5 h-5 rounded bg-card border-2 border-primary flex items-center justify-center">
+            <ShieldCheck className="w-2.5 h-2.5 text-primary" />
+          </div>
+          <span className="text-caption text-ink-light">Kursi Prioritas</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-5 h-5 rounded gradient-orange" />
@@ -175,12 +195,6 @@ export default function SeatsPage() {
         <div className="flex items-center gap-1.5">
           <div className="w-5 h-5 rounded bg-muted" />
           <span className="text-caption text-ink-light">Terisi</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-5 h-5 rounded bg-card border-2 border-primary/40 flex items-center justify-center">
-            <Star className="w-2.5 h-2.5 text-primary/60" />
-          </div>
-          <span className="text-caption text-ink-light">Prioritas</span>
         </div>
       </div>
 
@@ -209,55 +223,61 @@ export default function SeatsPage() {
             )}
 
             <div className="space-y-2">
-              {layout.map((row, ri) => (
-                <div key={ri} className="flex items-center justify-center gap-1.5">
-                  {row.map((cell, ci) => {
-                    if (!cell) {
-                      return <div key={ci} className="w-6" />;
-                    }
-                    const isPriority = PRIORITY_SEAT_NUMBERS.has(cell.num);
-                    const lockedForMahasiswa = isPriority && isMahasiswa && !priorityReleased;
-                    const isOccupied = occupied.has(cell.num);
-                    const isDisabled = isOccupied || lockedForMahasiswa;
+              {layout.rows.map((row, ri) => (
+                <Fragment key={ri}>
+                  <div className="flex items-center justify-center gap-1.5">
+                    {row.map((cell, ci) => {
+                      if (!cell) {
+                        return <div key={ci} className="w-10" />;
+                      }
+                      const isPriority = prioritySet.has(cell.num);
+                      const lockedForMahasiswa = isPriority && isMahasiswa && !priorityReleased;
+                      const isOccupied = occupied.has(cell.num);
+                      const isDisabled = isOccupied || lockedForMahasiswa;
+                      const lesehan = !!cell.lesehan;
 
-                    const btn = (
-                      <button
-                        key={ci}
-                        onClick={() => handleSeatTap(cell.num, cell.label)}
-                        disabled={isDisabled}
-                        className={`w-10 h-10 rounded-lg text-[11px] font-semibold transition-all relative ${getSeatStyle(cell.num, cell.label)}`}
-                      >
-                        {isPriority && (
-                          <Star
-                            className={`absolute top-0.5 right-0.5 w-2.5 h-2.5 ${
-                              selectedSeat === cell.label ? 'text-primary-foreground/70' : 'text-primary/50'
-                            }`}
-                          />
-                        )}
-                        {cell.label}
-                      </button>
-                    );
-
-                    if (isPriority && isMahasiswa && !priorityReleased) {
-                      return (
-                        <Tooltip key={ci}>
-                          <TooltipTrigger asChild>{btn}</TooltipTrigger>
-                          <TooltipContent side="top" className="text-xs">
-                            Kursi prioritas untuk dosen/staf
-                          </TooltipContent>
-                        </Tooltip>
+                      const btn = (
+                        <button
+                          key={ci}
+                          onClick={() => handleSeatTap(cell.num, cell.label)}
+                          disabled={isDisabled}
+                          className={`w-11 h-11 rounded-lg text-[11px] font-semibold transition-all relative ${getSeatStyle(cell.num, cell.label, lesehan)}`}
+                        >
+                          {isPriority && (
+                            <ShieldCheck
+                              className={`absolute top-0.5 right-0.5 w-2.5 h-2.5 ${
+                                selectedSeat === cell.label ? 'text-primary-foreground/80' : 'text-primary'
+                              }`}
+                            />
+                          )}
+                          {cell.label}
+                        </button>
                       );
-                    }
-                    return btn;
-                  })}
-                </div>
+
+                      if (isPriority && isMahasiswa && !priorityReleased) {
+                        return (
+                          <Tooltip key={ci}>
+                            <TooltipTrigger asChild>{btn}</TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">
+                              Kursi prioritas untuk dosen/staf
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      }
+                      return btn;
+                    })}
+                  </div>
+                  {layout.hasElfDivider && ri === 0 && (
+                    <div className="border-t border-border my-2 mx-4" />
+                  )}
+                </Fragment>
               ))}
             </div>
 
             {/* Priority note */}
             {!priorityReleased && (
               <p className="text-[10px] text-ink-light mt-4 text-center">
-                Kursi prioritas ★ yang tidak terisi akan dibuka untuk umum 30 menit sebelum keberangkatan.
+                Kursi prioritas yang tidak terisi akan dibuka untuk umum 30 menit sebelum keberangkatan.
               </p>
             )}
           </div>

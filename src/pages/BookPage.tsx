@@ -10,6 +10,7 @@ import {
   getSeatsRemaining,
   BUS_CONFIGS,
   normalizeStop,
+  routeUsesKemanggisanSubstops,
 } from '@/store/shuttleStore';
 import { ArrowLeft, ArrowUpDown, MapPin, Calendar, Clock, ChevronRight, Bus } from 'lucide-react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
@@ -77,20 +78,40 @@ export default function BookPage() {
   const handleSelectFromMain = (stop: string) => {
     setFromOpen(false);
     if (stop === 'Kemanggisan') {
-      setPendingFromMain(stop);
-      setFromSubOpen(true);
+      // Sub-stop picker only appears on the Binus Square corridor.
+      const otherIsBinusSquare = normalizeStop(currentBooking.to) === 'Binus Square';
+      if (otherIsBinusSquare) {
+        setPendingFromMain(stop);
+        setFromSubOpen(true);
+      } else {
+        setCurrentBooking({ from: 'Kemanggisan (Anggrek)', time: '', busType: null, seat: null });
+      }
     } else {
       setCurrentBooking({ from: stop, time: '', busType: null, seat: null });
+      // If user just picked Binus Square and the other end is Kemanggisan (any form), prompt for sub-stop.
+      if (stop === 'Binus Square' && normalizeStop(currentBooking.to) === 'Kemanggisan') {
+        setPendingToMain('Kemanggisan');
+        setToSubOpen(true);
+      }
     }
   };
 
   const handleSelectToMain = (stop: string) => {
     setToOpen(false);
     if (stop === 'Kemanggisan') {
-      setPendingToMain(stop);
-      setToSubOpen(true);
+      const otherIsBinusSquare = normalizeStop(currentBooking.from) === 'Binus Square';
+      if (otherIsBinusSquare) {
+        setPendingToMain(stop);
+        setToSubOpen(true);
+      } else {
+        setCurrentBooking({ to: 'Kemanggisan (Anggrek)', time: '', busType: null, seat: null });
+      }
     } else {
       setCurrentBooking({ to: stop, time: '', busType: null, seat: null });
+      if (stop === 'Binus Square' && normalizeStop(currentBooking.from) === 'Kemanggisan') {
+        setPendingFromMain('Kemanggisan');
+        setFromSubOpen(true);
+      }
     }
   };
 
