@@ -143,16 +143,17 @@ export default function SeatsPage() {
     setCurrentBooking({ seat: selectedSeat === label ? null : label });
   };
 
-  const getSeatStyle = (seatNum: number, label: string, lesehan: boolean): string => {
+  const getSeatStyle = (seatNum: number, label: string): string => {
     const isPriority = prioritySet.has(seatNum);
     const lockedForMahasiswa = isPriority && isMahasiswa && !priorityReleased;
-    if (occupied.has(seatNum) || lockedForMahasiswa) {
-      return 'bg-muted text-muted-foreground cursor-not-allowed';
+    if (occupied.has(seatNum)) {
+      return 'bg-[#9AA3AE] text-white/80 cursor-not-allowed';
     }
     if (selectedSeat === label) return 'gradient-orange text-primary-foreground';
-    if (isPriority) return 'bg-card border-2 border-primary text-primary hover:bg-primary/5 cursor-pointer';
-    if (lesehan) return 'bg-[hsl(48_96%_58%)] text-ink hover:brightness-95 cursor-pointer border-2 border-[hsl(42_90%_50%)]';
-    return 'bg-primary/90 text-primary-foreground hover:bg-primary cursor-pointer border-2 border-primary';
+    if (lockedForMahasiswa) {
+      return 'bg-[#E5E7EB] text-ink cursor-not-allowed';
+    }
+    return 'bg-[#E5E7EB] text-ink hover:bg-[#D1D5DB] cursor-pointer';
   };
 
   return (
@@ -173,34 +174,30 @@ export default function SeatsPage() {
       {/* Legend */}
       <div className="flex flex-wrap gap-3 px-5 mb-4">
         <div className="flex items-center gap-1.5">
-          <div className="w-5 h-5 rounded bg-primary/90 border-2 border-primary" />
-          <span className="text-caption text-ink-light">Duduk Biasa</span>
-        </div>
-        {busType === 'minibus' && isBinusSquare && (
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 rounded bg-[hsl(48_96%_58%)] border-2 border-[hsl(42_90%_50%)]" />
-            <span className="text-caption text-ink-light">Duduk Lesehan</span>
-          </div>
-        )}
-        <div className="flex items-center gap-1.5">
-          <div className="w-5 h-5 rounded bg-card border-2 border-primary flex items-center justify-center">
-            <ShieldCheck className="w-2.5 h-2.5 text-primary" />
-          </div>
-          <span className="text-caption text-ink-light">Kursi Prioritas</span>
+          <div className="w-5 h-5 rounded bg-[#E5E7EB]" />
+          <span className="text-caption text-ink-light">Tersedia</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-5 h-5 rounded gradient-orange" />
           <span className="text-caption text-ink-light">Dipilih</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-5 h-5 rounded bg-muted" />
+          <div className="w-5 h-5 rounded bg-[#9AA3AE]" />
           <span className="text-caption text-ink-light">Terisi</span>
         </div>
+        {busType !== 'minibus' && (
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded bg-[#E5E7EB] flex items-center justify-center">
+              <ShieldCheck className="w-3 h-3 text-primary" />
+            </div>
+            <span className="text-caption text-ink-light">Kursi Prioritas</span>
+          </div>
+        )}
       </div>
 
-      <div className={`px-5 flex-1 ${showStanding ? 'flex gap-3' : ''}`}>
+      <div className="px-5 flex-1 space-y-4">
         {/* Seat map */}
-        <div className={`${showStanding ? 'flex-1' : ''}`}>
+        <div>
           {showStanding && (
             <div className="flex items-center justify-between mb-2">
               <p className="text-body font-semibold text-ink">Kursi</p>
@@ -234,16 +231,15 @@ export default function SeatsPage() {
                       const lockedForMahasiswa = isPriority && isMahasiswa && !priorityReleased;
                       const isOccupied = occupied.has(cell.num);
                       const isDisabled = isOccupied || lockedForMahasiswa;
-                      const lesehan = !!cell.lesehan;
 
                       const btn = (
                         <button
                           key={ci}
                           onClick={() => handleSeatTap(cell.num, cell.label)}
                           disabled={isDisabled}
-                          className={`w-11 h-11 rounded-lg text-[11px] font-semibold transition-all relative ${getSeatStyle(cell.num, cell.label, lesehan)}`}
+                          className={`w-11 h-11 rounded-lg text-[11px] font-semibold transition-all relative ${getSeatStyle(cell.num, cell.label)}`}
                         >
-                          {isPriority && (
+                          {isPriority && !isOccupied && (
                             <ShieldCheck
                               className={`absolute top-0.5 right-0.5 w-2.5 h-2.5 ${
                                 selectedSeat === cell.label ? 'text-primary-foreground/80' : 'text-primary'
@@ -274,8 +270,8 @@ export default function SeatsPage() {
               ))}
             </div>
 
-            {/* Priority note */}
-            {!priorityReleased && (
+            {/* Priority note — only for buses that have priority seats */}
+            {busType !== 'minibus' && !priorityReleased && (
               <p className="text-[10px] text-ink-light mt-4 text-center">
                 Kursi prioritas yang tidak terisi akan dibuka untuk umum 30 menit sebelum keberangkatan.
               </p>
@@ -283,32 +279,34 @@ export default function SeatsPage() {
           </div>
         </div>
 
-        {/* Standing section — Binus Square routes only, always visible */}
+        {/* Standing section — Binus Square routes only, below seat map */}
         {showStanding && (
-          <div className="w-28">
+          <div>
+            <div className="border-t border-border my-2" />
             <div className="flex items-center justify-between mb-2">
               <p className="text-body font-semibold text-ink">Berdiri</p>
-            </div>
-
-            <div className="bg-card rounded-2xl p-3 shadow-card h-fit">
-              <div className="flex items-center gap-1 mb-2">
+              <div className="flex items-center gap-1.5">
                 <div className={`w-2.5 h-2.5 rounded-full ${availDotColor(standingTotal, standingTotal)}`} />
                 <span className={`text-caption font-semibold ${availColor(standingTotal, standingTotal)}`}>
                   {standingTotal} tersedia
                 </span>
               </div>
-              <p className="text-[10px] text-ink-light mb-3">Pilih berdiri meski kursi masih ada</p>
+            </div>
+
+            <div className="bg-card rounded-2xl p-4 shadow-card">
+              <p className="text-[11px] text-ink-light mb-3">
+                Pilih berdiri meski kursi masih ada. Maks. {standingTotal} orang.
+              </p>
               <button
                 onClick={handleStandingTap}
-                className={`w-full py-3 rounded-xl text-caption font-semibold transition-all ${
+                className={`w-full h-12 rounded-xl text-body font-semibold transition-all ${
                   selectedSeat === 'B1'
                     ? 'gradient-orange text-primary-foreground'
-                    : 'bg-muted text-ink hover:bg-muted/80'
+                    : 'bg-[#E5E7EB] text-ink hover:bg-[#D1D5DB]'
                 }`}
               >
-                {selectedSeat === 'B1' ? '✓ Berdiri' : 'Pilih Berdiri'}
+                {selectedSeat === 'B1' ? '✓ Berdiri Dipilih' : 'Pilih Berdiri'}
               </button>
-              <p className="text-[10px] text-ink-light mt-2 text-center">Maks. {standingTotal} orang</p>
             </div>
           </div>
         )}

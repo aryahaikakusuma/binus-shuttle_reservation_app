@@ -4,7 +4,7 @@ import { useShuttleStore } from '@/store/shuttleStore';
 import { Bus, Eye, EyeOff, Lock } from 'lucide-react';
 
 export default function LoginPage() {
-  const [binusId, setBinusId] = useState('');
+  const [nim, setNim] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const login = useShuttleStore((s) => s.login);
@@ -26,15 +26,15 @@ export default function LoginPage() {
       </div>
 
       <h2 className="text-h1 text-ink mb-1">Selamat Datang</h2>
-      <p className="text-body text-ink-light mb-8">Masuk dengan Binus ID kamu</p>
+      <p className="text-body text-ink-light mb-8">Masuk dengan NIM kamu</p>
 
       <div className="space-y-4 flex-1">
         <div>
-          <label className="text-caption font-semibold text-ink-light mb-1.5 block">Binus ID / Email</label>
+          <label className="text-caption font-semibold text-ink-light mb-1.5 block">NIM</label>
           <input
-            value={binusId}
-            onChange={(e) => setBinusId(e.target.value)}
-            placeholder="e.g. arya.kusuma@binus.ac.id"
+            value={nim}
+            onChange={(e) => setNim(e.target.value)}
+            placeholder="Masukkan NIM"
             className="w-full h-12 px-4 rounded-xl border border-border bg-card text-body text-ink placeholder:text-ink-light/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
@@ -56,9 +56,9 @@ export default function LoginPage() {
 
         <button
           onClick={handleLogin}
-          disabled={!binusId || !password}
+          disabled={!nim || !password}
           className={`w-full h-12 rounded-xl font-semibold text-body mt-4 transition-all active:scale-[0.98] ${
-            binusId && password
+            nim && password
               ? 'gradient-orange text-primary-foreground shadow-card'
               : 'bg-muted text-muted-foreground cursor-not-allowed'
           }`}

@@ -248,10 +248,11 @@ export function getSeatsRemaining(
 }
 
 // ── Priority seat logic ────────────────────────────────────────────────────────
-// Elf has only 1 priority seat (seat 1). Minibus and Bus Medium have 2 (seats 1 and 2).
+// Elf has only 1 priority seat (seat 1). Bus Medium has 2 (seats 1 and 2).
+// Minibus (Binus Square routes) has no priority seats — all seats are general admission.
 export const PRIORITY_SEATS_BY_BUS: Record<BusType, Set<number>> = {
   elf: new Set([1]),
-  minibus: new Set([1, 2]),
+  minibus: new Set(),
   bus_medium: new Set([1, 2]),
 };
 
