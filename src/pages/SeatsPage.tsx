@@ -35,20 +35,18 @@ function buildElfLayout(): SeatLayout {
   return { rows, hasElfDivider: true };
 }
 
-function buildMinibusLayout(isBinusSquare: boolean): SeatLayout {
-  // 6 left + 6 right column pairs, then a 4-seat back bench.
-  // On Binus Square routes, half of the seats are "Duduk Lesehan" (floor seating).
+function buildMinibusLayout(_isBinusSquare: boolean): SeatLayout {
+  // 4-column fixed grid: rows 1-6 place seats at columns 1 and 4 (aisle in middle).
+  // Row 7 is the back bench with all 4 columns filled.
   const rows: SeatDef[][] = [];
   for (let r = 1; r <= 6; r++) {
     const leftNum = (r - 1) * 2 + 1;
     const rightNum = (r - 1) * 2 + 2;
-    // Mirror the reference: top-left + bottom-right are lesehan on Binus Square.
-    const leftLesehan = isBinusSquare && r <= 3;
-    const rightLesehan = isBinusSquare && r >= 4;
     rows.push([
-      { num: leftNum, label: `${leftNum}`, lesehan: leftLesehan },
+      { num: leftNum, label: `${leftNum}` },
       null,
-      { num: rightNum, label: `${rightNum}`, lesehan: rightLesehan },
+      null,
+      { num: rightNum, label: `${rightNum}` },
     ]);
   }
   rows.push([
@@ -222,10 +220,16 @@ export default function SeatsPage() {
             <div className="space-y-2">
               {layout.rows.map((row, ri) => (
                 <Fragment key={ri}>
-                  <div className="flex items-center justify-center gap-1.5">
+                  <div
+                    className={
+                      busType === 'minibus'
+                        ? 'grid grid-cols-4 gap-1.5 w-[194px] mx-auto'
+                        : 'flex items-center justify-center gap-1.5'
+                    }
+                  >
                     {row.map((cell, ci) => {
                       if (!cell) {
-                        return <div key={ci} className="w-10" />;
+                        return <div key={ci} className={busType === 'minibus' ? 'w-11 h-11' : 'w-10'} />;
                       }
                       const isPriority = prioritySet.has(cell.num);
                       const lockedForMahasiswa = isPriority && isMahasiswa && !priorityReleased;
