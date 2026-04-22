@@ -3,7 +3,9 @@ import { create } from 'zustand';
 // ── Types ─────────────────────────────────────────────────────────────────────
 export type BusType = 'elf' | 'minibus' | 'bus_medium';
 export type UserRole = 'mahasiswa' | 'dosen' | 'staf';
-export type BookingStatus = 'confirmed' | 'completed' | 'cancelled' | 'no-show';
+export type BookingStatus = 'confirmed' | 'completed' | 'cancelled' | 'no-show' | 'waitlisted';
+
+export const OFFER_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 export type StrikeStatus = 'aktif' | 'selesai' | 'dalam_peninjauan' | 'dicabut';
 export type StrikeReason = 'no_show' | 'late_cancellation';
 
@@ -73,6 +75,7 @@ const SCHEDULES_BY_ROUTE: Record<string, RouteSchedule[]> = {
   'Kemanggisan|Alam Sutera': [
     { time: '06:30', busType: 'elf' },
     { time: '07:30', busType: 'bus_medium' },
+    { time: '08:00', busType: 'bus_medium' },
     { time: '09:00', busType: 'elf' },
     { time: '12:00', busType: 'bus_medium' },
     { time: '14:00', busType: 'elf' },
@@ -154,6 +157,13 @@ export interface Booking {
   status: BookingStatus;
   createdAt: string;
   busType: BusType;
+  queuePosition?: number | null;
+  offeredSeat?: string | null;
+  offerExpiresAt?: number | null;
+}
+
+export function scheduleKey(b: Pick<Booking, 'from' | 'to' | 'date' | 'departure'>): string {
+  return `${normalizeStop(b.from)}|${normalizeStop(b.to)}|${b.date}|${b.departure}`;
 }
 
 export interface Strike {
@@ -196,6 +206,16 @@ export interface ShuttleState {
   addStrike: (bookingId: string, route: string, date: string, time: string, reason: StrikeReason) => void;
   isSuspended: () => boolean;
   getSuspensionEnd: () => string | null;
+
+  // Waitlist
+  getWaitlistPositionForCurrent: () => number;
+  joinWaitlist: () => Booking | null;
+  cancelWaitlist: (id: string) => void;
+  triggerOffer: (id: string, seat?: string) => void;
+  acceptOffer: (id: string) => void;
+  declineOffer: (id: string) => void;
+  expireOffer: (id: string) => void;
+  getPendingOfferBooking: () => Booking | null;
 }
 
 // ── Date helpers ───────────────────────────────────────────────────────────────
@@ -244,7 +264,19 @@ export function getOccupiedSeats(
 export function getSeatsRemaining(
   from: string, to: string, date: string, time: string, totalSeats: number
 ): number {
+  if (isScheduleFull(from, to, date, time)) return 0;
   return totalSeats - getOccupiedSeats(from, to, date, time, totalSeats).size;
+}
+
+// Demo: the 08:00 Bus Medium Kemanggisan ⇄ Alam Sutera is hardcoded full to
+// exercise the waitlist flow.
+export function isScheduleFull(from: string, to: string, _date: string, time: string): boolean {
+  const a = normalizeStop(from);
+  const b = normalizeStop(to);
+  const isKaRoute =
+    (a === 'Kemanggisan' && b === 'Alam Sutera') ||
+    (a === 'Alam Sutera' && b === 'Kemanggisan');
+  return isKaRoute && time === '08:00';
 }
 
 // ── Priority seat logic ────────────────────────────────────────────────────────
@@ -315,6 +347,22 @@ const SEED_BOOKINGS: Booking[] = [
     status: 'completed',
     createdAt: getLocalDateString(-8),
     busType: 'minibus',
+  },
+  {
+    id: 'BNS-2024-003',
+    from: 'Kemanggisan (Anggrek)',
+    to: 'Alam Sutera',
+    date: getLocalDateString(1),
+    departure: '08:00',
+    arrival: getArrivalTime('08:00'),
+    seatNumber: null,
+    isStanding: false,
+    status: 'waitlisted',
+    createdAt: getLocalDateString(0),
+    busType: 'bus_medium',
+    queuePosition: 2,
+    offeredSeat: null,
+    offerExpiresAt: null,
   },
 ];
 
@@ -473,5 +521,193 @@ export const useShuttleStore = create<ShuttleState>((set, get) => ({
       (s) => s.status === 'aktif' && s.suspensionEnd >= today
     );
     return active?.suspensionEnd ?? null;
+  },
+
+  getWaitlistPositionForCurrent: () => {
+    const { currentBooking, bookings } = get();
+    if (!currentBooking.from || !currentBooking.to || !currentBooking.date || !currentBooking.time) {
+      return 1;
+    }
+    const key = `${normalizeStop(currentBooking.from)}|${normalizeStop(currentBooking.to)}|${currentBooking.date}|${currentBooking.time}`;
+    const existing = bookings.filter(
+      (b) => b.status === 'waitlisted' && scheduleKey(b) === key
+    ).length;
+    return existing + 1;
+  },
+
+  joinWaitlist: () => {
+    const { currentBooking, bookings } = get();
+    if (
+      !currentBooking.from || !currentBooking.to ||
+      !currentBooking.date || !currentBooking.time ||
+      !currentBooking.busType
+    ) return null;
+
+    const key = `${normalizeStop(currentBooking.from)}|${normalizeStop(currentBooking.to)}|${currentBooking.date}|${currentBooking.time}`;
+    const existing = bookings.filter(
+      (b) => b.status === 'waitlisted' && scheduleKey(b) === key
+    ).length;
+
+    const booking: Booking = {
+      id: `BNS-${Date.now().toString().slice(-6)}`,
+      from: currentBooking.from,
+      to: currentBooking.to,
+      date: currentBooking.date,
+      departure: currentBooking.time,
+      arrival: getArrivalTime(currentBooking.time),
+      seatNumber: null,
+      isStanding: false,
+      status: 'waitlisted',
+      createdAt: getLocalDateString(0),
+      busType: currentBooking.busType,
+      queuePosition: existing + 1,
+      offeredSeat: null,
+      offerExpiresAt: null,
+    };
+
+    set((s) => ({
+      bookings: [booking, ...s.bookings],
+      currentBooking: { ...EMPTY_BOOKING },
+    }));
+
+    return booking;
+  },
+
+  cancelWaitlist: (id) => {
+    set((s) => {
+      const target = s.bookings.find((b) => b.id === id);
+      if (!target) return s;
+      const targetKey = scheduleKey(target);
+      const targetPos = target.queuePosition ?? 0;
+      return {
+        bookings: s.bookings.map((b) => {
+          if (b.id === id) return { ...b, status: 'cancelled' as BookingStatus, queuePosition: null };
+          if (
+            b.status === 'waitlisted' &&
+            scheduleKey(b) === targetKey &&
+            (b.queuePosition ?? 0) > targetPos
+          ) {
+            return { ...b, queuePosition: (b.queuePosition ?? 1) - 1 };
+          }
+          return b;
+        }),
+      };
+    });
+  },
+
+  triggerOffer: (id, seat) => {
+    set((s) => ({
+      bookings: s.bookings.map((b) =>
+        b.id === id
+          ? {
+              ...b,
+              offeredSeat: seat ?? '2A',
+              offerExpiresAt: Date.now() + OFFER_WINDOW_MS,
+              queuePosition: 1,
+            }
+          : b
+      ),
+    }));
+  },
+
+  acceptOffer: (id) => {
+    set((s) => {
+      const target = s.bookings.find((b) => b.id === id);
+      if (!target) return s;
+      const targetKey = scheduleKey(target);
+      return {
+        bookings: s.bookings.map((b) => {
+          if (b.id === id) {
+            return {
+              ...b,
+              status: 'confirmed' as BookingStatus,
+              seatNumber: b.offeredSeat ?? '2A',
+              isStanding: false,
+              queuePosition: null,
+              offeredSeat: null,
+              offerExpiresAt: null,
+            };
+          }
+          if (
+            b.status === 'waitlisted' &&
+            scheduleKey(b) === targetKey
+          ) {
+            return { ...b, queuePosition: Math.max(1, (b.queuePosition ?? 2) - 1) };
+          }
+          return b;
+        }),
+      };
+    });
+  },
+
+  declineOffer: (id) => {
+    set((s) => {
+      const target = s.bookings.find((b) => b.id === id);
+      if (!target) return s;
+      const targetKey = scheduleKey(target);
+      return {
+        bookings: s.bookings.map((b) => {
+          if (b.id === id) {
+            return {
+              ...b,
+              status: 'cancelled' as BookingStatus,
+              queuePosition: null,
+              offeredSeat: null,
+              offerExpiresAt: null,
+            };
+          }
+          if (
+            b.status === 'waitlisted' &&
+            scheduleKey(b) === targetKey &&
+            (b.queuePosition ?? 0) > (target.queuePosition ?? 0)
+          ) {
+            return { ...b, queuePosition: (b.queuePosition ?? 1) - 1 };
+          }
+          return b;
+        }),
+      };
+    });
+  },
+
+  expireOffer: (id) => {
+    set((s) => {
+      const target = s.bookings.find((b) => b.id === id);
+      if (!target) return s;
+      const targetKey = scheduleKey(target);
+      const total = s.bookings.filter(
+        (b) => b.status === 'waitlisted' && scheduleKey(b) === targetKey
+      ).length;
+      return {
+        bookings: s.bookings.map((b) => {
+          if (b.id === id) {
+            return {
+              ...b,
+              offeredSeat: null,
+              offerExpiresAt: null,
+              queuePosition: total,
+            };
+          }
+          if (
+            b.status === 'waitlisted' &&
+            scheduleKey(b) === targetKey &&
+            b.id !== id
+          ) {
+            return { ...b, queuePosition: Math.max(1, (b.queuePosition ?? 2) - 1) };
+          }
+          return b;
+        }),
+      };
+    });
+  },
+
+  getPendingOfferBooking: () => {
+    const { bookings } = get();
+    const now = Date.now();
+    return bookings.find(
+      (b) =>
+        b.status === 'waitlisted' &&
+        b.offerExpiresAt != null &&
+        b.offerExpiresAt > now
+    ) ?? null;
   },
 }));

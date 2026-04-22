@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useShuttleStore, isPastH1Deadline } from '@/store/shuttleStore';
-import { ArrowLeft, X, Smartphone, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, X, Smartphone, AlertTriangle, Users, Bell } from 'lucide-react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 export default function TicketPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { bookings, cancelBooking, cancelBookingLate } = useShuttleStore();
+  const { bookings, cancelBooking, cancelBookingLate, cancelWaitlist, triggerOffer } = useShuttleStore();
 
   const [showLateWarning, setShowLateWarning] = useState(false);
   const [strikeRecorded, setStrikeRecorded] = useState(false);
@@ -23,16 +23,28 @@ export default function TicketPage() {
     );
   }
 
-  const canCancel = booking.status === 'confirmed';
+  const isWaitlisted = booking.status === 'waitlisted';
+  const canCancel = booking.status === 'confirmed' || isWaitlisted;
   const pastH1 = isPastH1Deadline(booking);
+  const hasPendingOffer = isWaitlisted && booking.offerExpiresAt != null && booking.offerExpiresAt > Date.now();
 
   const handleCancelTap = () => {
+    if (isWaitlisted) {
+      cancelWaitlist(booking.id);
+      navigate('/bookings');
+      return;
+    }
     if (pastH1) {
       setShowLateWarning(true);
     } else {
       cancelBooking(booking.id);
       navigate('/bookings');
     }
+  };
+
+  const handleSimulateOffer = () => {
+    triggerOffer(booking.id, '2A');
+    navigate(`/offer/${booking.id}`);
   };
 
   const handleCancelAnyway = () => {
@@ -47,6 +59,7 @@ export default function TicketPage() {
     completed: 'bg-secondary/10 text-secondary',
     cancelled: 'bg-destructive/10 text-destructive',
     'no-show': 'bg-destructive/10 text-destructive',
+    waitlisted: '',
   }[booking.status] ?? 'bg-muted text-muted-foreground';
 
   const statusLabel = {
@@ -54,7 +67,13 @@ export default function TicketPage() {
     completed: 'Selesai',
     cancelled: 'Dibatalkan',
     'no-show': 'Tidak Hadir',
+    waitlisted: 'Waitlist',
   }[booking.status] ?? booking.status;
+
+  const waitlistPillStyle: React.CSSProperties = {
+    backgroundColor: '#F59E0B1A',
+    color: '#92400E',
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -121,14 +140,48 @@ export default function TicketPage() {
                 <p className="font-semibold text-ink">{booking.departure}</p>
               </div>
               <div>
-                <p className="text-ink-light">Kursi</p>
-                <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  booking.isStanding ? 'bg-secondary/10 text-secondary' : 'bg-accent text-accent-foreground'
-                }`}>
-                  {booking.isStanding ? 'Berdiri' : booking.seatNumber}
-                </span>
+                <p className="text-ink-light">{isWaitlisted ? 'Antrian' : 'Kursi'}</p>
+                {isWaitlisted ? (
+                  <span
+                    className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                    style={waitlistPillStyle}
+                  >
+                    #{booking.queuePosition ?? '—'}
+                  </span>
+                ) : (
+                  <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    booking.isStanding ? 'bg-secondary/10 text-secondary' : 'bg-accent text-accent-foreground'
+                  }`}>
+                    {booking.isStanding ? 'Berdiri' : booking.seatNumber}
+                  </span>
+                )}
               </div>
             </div>
+
+            {/* Waitlist position highlight */}
+            {isWaitlisted && (
+              <div
+                className="rounded-xl p-3 flex items-center gap-3"
+                style={{ backgroundColor: '#F59E0B1A', border: '1px solid #F59E0B4D' }}
+              >
+                <Users className="w-5 h-5 shrink-0" style={{ color: '#F59E0B' }} />
+                <div className="flex-1">
+                  <p className="text-caption" style={{ color: '#92400E' }}>Posisi Antrian</p>
+                  <p className="text-body font-bold" style={{ color: '#92400E' }}>
+                    #{booking.queuePosition ?? '—'}
+                  </p>
+                </div>
+                {hasPendingOffer && (
+                  <button
+                    onClick={() => navigate(`/offer/${booking.id}`)}
+                    className="text-caption font-semibold px-3 py-1.5 rounded-lg"
+                    style={{ backgroundColor: '#F59E0B', color: 'white' }}
+                  >
+                    Lihat Tawaran
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Boarding instruction — only for upcoming (confirmed) bookings */}
             {booking.status === 'confirmed' && (
@@ -141,7 +194,10 @@ export default function TicketPage() {
             )}
 
             <div className="flex justify-center">
-              <span className={`px-4 py-1.5 rounded-full text-caption font-bold ${statusStyle}`}>
+              <span
+                className={`px-4 py-1.5 rounded-full text-caption font-bold ${statusStyle}`}
+                style={isWaitlisted ? waitlistPillStyle : undefined}
+              >
                 {statusLabel}
               </span>
             </div>
@@ -151,13 +207,28 @@ export default function TicketPage() {
 
       {/* Actions */}
       {canCancel && (
-        <div className="sticky bottom-0 p-5 bg-card shadow-sticky">
+        <div className="sticky bottom-0 p-5 bg-card shadow-sticky space-y-2">
+          {isWaitlisted && !hasPendingOffer && (
+            <button
+              onClick={handleSimulateOffer}
+              className="w-full h-12 rounded-xl font-semibold text-body text-white flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+              style={{ backgroundColor: '#F59E0B' }}
+            >
+              <Bell className="w-5 h-5" /> Simulasikan Tawaran Kursi
+            </button>
+          )}
           <button
             onClick={handleCancelTap}
             className="w-full h-12 rounded-xl border-2 border-destructive text-destructive font-semibold text-body flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
           >
-            <X className="w-5 h-5" /> Batalkan Pemesanan
+            <X className="w-5 h-5" />
+            {isWaitlisted ? 'Keluar dari Waitlist' : 'Batalkan Pemesanan'}
           </button>
+          {isWaitlisted && (
+            <p className="text-caption text-ink-light text-center">
+              Pembatalan waitlist selalu gratis, tidak dikenakan strike.
+            </p>
+          )}
         </div>
       )}
 

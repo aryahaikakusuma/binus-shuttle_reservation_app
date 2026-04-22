@@ -1,15 +1,33 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShuttleStore } from '@/store/shuttleStore';
 import { QuickActionIcon } from '@/components/QuickActionIcon';
-import { CalendarCheck, ShieldAlert, Bus, ChevronRight, Megaphone } from 'lucide-react';
+import { CalendarCheck, ShieldAlert, Bus, ChevronRight, Megaphone, Bell } from 'lucide-react';
+
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return '00:00';
+  const total = Math.floor(ms / 1000);
+  const m = String(Math.floor(total / 60)).padStart(2, '0');
+  const s = String(total % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { user, bookings, resetCurrentBooking, isSuspended, getSuspensionEnd } = useShuttleStore();
+  const { user, bookings, resetCurrentBooking, isSuspended, getSuspensionEnd, getPendingOfferBooking } = useShuttleStore();
+  const [now, setNow] = useState(Date.now());
 
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const pendingOffer = getPendingOfferBooking();
   const upcomingBooking = bookings.find((b) => b.status === 'confirmed');
   const suspended = isSuspended();
   const suspendedUntil = getSuspensionEnd();
+
+  const remaining = pendingOffer?.offerExpiresAt ? pendingOffer.offerExpiresAt - now : 0;
 
   const getGreeting = () => {
     const h = new Date().getHours();
@@ -67,6 +85,35 @@ export default function HomePage() {
       </div>
 
       <div className="px-5 -mt-4 space-y-5">
+        {/* Pending waitlist offer */}
+        {pendingOffer && remaining > 0 && (
+          <button
+            onClick={() => navigate(`/offer/${pendingOffer.id}`)}
+            className="w-full rounded-2xl p-4 text-left flex items-center gap-3 animate-pulse"
+            style={{
+              backgroundColor: '#FFF7ED',
+              border: '2px solid #F59E0B',
+            }}
+          >
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+              style={{ backgroundColor: '#F59E0B', color: 'white' }}
+            >
+              <Bell className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-body font-bold" style={{ color: '#92400E' }}>
+                Kursi tersedia! Konfirmasi sekarang
+              </p>
+              <p className="text-caption" style={{ color: '#92400E' }}>
+                {pendingOffer.from} → {pendingOffer.to} · {pendingOffer.departure} ·{' '}
+                <span className="font-bold tabular-nums">{formatCountdown(remaining)}</span>
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4" style={{ color: '#92400E' }} />
+          </button>
+        )}
+
         {/* Quick Actions */}
         <div className="bg-card rounded-2xl p-5 shadow-card flex justify-around">
           <QuickActionIcon

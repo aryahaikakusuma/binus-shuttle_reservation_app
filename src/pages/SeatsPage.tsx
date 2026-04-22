@@ -220,16 +220,10 @@ export default function SeatsPage() {
             <div className="space-y-2">
               {layout.rows.map((row, ri) => (
                 <Fragment key={ri}>
-                  <div
-                    className={
-                      busType === 'minibus'
-                        ? 'grid grid-cols-4 gap-1.5 w-[194px] mx-auto'
-                        : 'flex items-center justify-center gap-1.5'
-                    }
-                  >
+                  <div className="flex items-center justify-center gap-1.5">
                     {row.map((cell, ci) => {
                       if (!cell) {
-                        return <div key={ci} className={busType === 'minibus' ? 'w-11 h-11' : 'w-10'} />;
+                        return <div key={ci} className="w-10" />;
                       }
                       const isPriority = prioritySet.has(cell.num);
                       const lockedForMahasiswa = isPriority && isMahasiswa && !priorityReleased;

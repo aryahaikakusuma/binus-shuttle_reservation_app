@@ -11,6 +11,8 @@ import SeatsPage from "./pages/SeatsPage";
 import ConfirmPage from "./pages/ConfirmPage";
 import TicketPage from "./pages/TicketPage";
 import BookingsPage from "./pages/BookingsPage";
+import WaitlistConfirmPage from "./pages/WaitlistConfirmPage";
+import OfferPage from "./pages/OfferPage";
 import ProfilePage from "./pages/ProfilePage";
 import StrikesPage from "./pages/StrikesPage";
 import AppealPage from "./pages/AppealPage";
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/book" element={<BookPage />} />
             <Route path="/seats" element={<SeatsPage />} />
             <Route path="/confirm" element={<ConfirmPage />} />
+            <Route path="/waitlist-confirm" element={<WaitlistConfirmPage />} />
+            <Route path="/offer/:id" element={<OfferPage />} />
             <Route path="/ticket/:id" element={<TicketPage />} />
             <Route path="/bookings" element={<BookingsPage />} />
             <Route path="/profile" element={<ProfilePage />} />

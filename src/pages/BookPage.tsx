@@ -8,6 +8,7 @@ import {
   isBinusSquareRoute,
   getSchedulesForRoute,
   getSeatsRemaining,
+  isScheduleFull,
   BUS_CONFIGS,
   normalizeStop,
   routeUsesKemanggisanSubstops,
@@ -257,7 +258,13 @@ export default function BookPage() {
       <div className="sticky bottom-0 p-5 bg-card shadow-sticky">
         <button
           disabled={!allValid}
-          onClick={() => { if (allValid) navigate('/seats'); }}
+          onClick={() => {
+            if (!allValid) return;
+            const full = isScheduleFull(
+              currentBooking.from, currentBooking.to, currentBooking.date, currentBooking.time
+            );
+            navigate(full ? '/waitlist-confirm' : '/seats');
+          }}
           className={`w-full h-12 rounded-xl font-semibold text-body transition-all active:scale-[0.98] ${
             allValid ? 'gradient-orange text-primary-foreground shadow-card' : 'bg-muted text-muted-foreground'
           }`}
@@ -399,6 +406,9 @@ export default function BookPage() {
           <div className="px-4 pb-6 space-y-1">
             {schedules.map(({ time, busType }) => {
               const total = BUS_CONFIGS[busType].seatCount;
+              const full = currentBooking.from && currentBooking.to && currentBooking.date
+                ? isScheduleFull(currentBooking.from, currentBooking.to, currentBooking.date, time)
+                : false;
               const seats = currentBooking.from && currentBooking.to && currentBooking.date
                 ? getSeatsRemaining(currentBooking.from, currentBooking.to, currentBooking.date, time, total)
                 : total;
@@ -417,10 +427,16 @@ export default function BookPage() {
                   <span className="text-caption text-ink-light bg-muted px-2 py-0.5 rounded-full">
                     {BUS_CONFIGS[busType].label}
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <div className={`w-2 h-2 rounded-full ${seatDot(seats, total)}`} />
-                    <span className="text-caption text-ink-light">{seats} kursi</span>
-                  </div>
+                  {full ? (
+                    <span className="text-caption font-semibold text-destructive">
+                      Penuh — Waitlist tersedia
+                    </span>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-2 h-2 rounded-full ${seatDot(seats, total)}`} />
+                      <span className="text-caption text-ink-light">{seats} kursi</span>
+                    </div>
+                  )}
                   <ChevronRight className="w-4 h-4 text-ink-light" />
                 </button>
               );
