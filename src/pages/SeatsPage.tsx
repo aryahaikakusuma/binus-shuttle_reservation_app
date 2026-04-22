@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   useShuttleStore,
   isBinusSquareRoute,
+  routeSupportsStanding,
   getOccupiedSeats,
   BUS_CONFIGS,
   getPrioritySeats,
@@ -113,7 +114,10 @@ export default function SeatsPage() {
   const config = BUS_CONFIGS[busType];
   const totalSeats = config.seatCount;
   const isBinusSquare = isBinusSquareRoute(currentBooking.from, currentBooking.to);
-  const showStanding = isBinusSquare && config.standingAllowed;
+  const showStanding =
+    routeSupportsStanding(currentBooking.from, currentBooking.to) &&
+    busType === 'minibus' &&
+    config.standingAllowed;
   const standingTotal = config.standingCount;
   const prioritySet = useMemo(() => getPrioritySeats(busType), [busType]);
 

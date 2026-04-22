@@ -71,6 +71,19 @@ export function isBinusSquareRoute(from: string, to: string): boolean {
   return from === 'Binus Square' || to === 'Binus Square';
 }
 
+/**
+ * Standing mode is restricted to Minibus on the Binus Square ⇄ Kemanggisan
+ * corridor. No other route or bus type ever supports standing.
+ */
+export function routeSupportsStanding(from: string, to: string): boolean {
+  const a = normalizeStop(from);
+  const b = normalizeStop(to);
+  return (
+    (a === 'Binus Square' && b === 'Kemanggisan') ||
+    (a === 'Kemanggisan' && b === 'Binus Square')
+  );
+}
+
 const SCHEDULES_BY_ROUTE: Record<string, RouteSchedule[]> = {
   'Kemanggisan|Alam Sutera': [
     { time: '06:30', busType: 'elf' },

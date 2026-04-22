@@ -5,13 +5,12 @@ import {
   MAIN_STOPS,
   KEMANGGISAN_SUBSTOPS,
   isValidRoute,
-  isBinusSquareRoute,
+  routeSupportsStanding,
   getSchedulesForRoute,
   getSeatsRemaining,
   isScheduleFull,
   BUS_CONFIGS,
   normalizeStop,
-  routeUsesKemanggisanSubstops,
 } from '@/store/shuttleStore';
 import { ArrowLeft, ArrowUpDown, MapPin, Calendar, Clock, ChevronRight, Bus } from 'lucide-react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
@@ -139,7 +138,7 @@ export default function BookPage() {
   };
 
   const isOverflow = currentBooking.from && currentBooking.to
-    ? isBinusSquareRoute(currentBooking.from, currentBooking.to)
+    ? routeSupportsStanding(currentBooking.from, currentBooking.to)
     : false;
 
   return (
@@ -169,7 +168,9 @@ export default function BookPage() {
         <div className="relative">
           <button
             onClick={() => setFromOpen(true)}
-            className="w-full h-12 px-4 rounded-xl border border-border bg-card text-left flex items-center gap-3"
+            className={`w-full h-12 px-4 rounded-xl border bg-card text-left flex items-center gap-3 ${
+              routeInvalid ? 'border-destructive' : 'border-border'
+            }`}
           >
             <MapPin className="w-5 h-5 text-primary shrink-0" />
             <span className={`text-body flex-1 ${currentBooking.from ? 'text-ink' : 'text-ink-light/50'}`}>
@@ -187,7 +188,9 @@ export default function BookPage() {
 
           <button
             onClick={() => setToOpen(true)}
-            className="w-full h-12 px-4 rounded-xl border border-border bg-card text-left flex items-center gap-3 mt-2"
+            className={`w-full h-12 px-4 rounded-xl border bg-card text-left flex items-center gap-3 mt-2 ${
+              routeInvalid ? 'border-destructive' : 'border-border'
+            }`}
           >
             <MapPin className="w-5 h-5 text-destructive shrink-0" />
             <span className={`text-body flex-1 ${currentBooking.to ? 'text-ink' : 'text-ink-light/50'}`}>
@@ -199,7 +202,7 @@ export default function BookPage() {
             <p className="text-caption text-destructive mt-1.5 ml-1">Pilih tujuan berbeda</p>
           )}
           {routeInvalid && (
-            <p className="text-caption text-destructive mt-1.5 ml-1">Rute tidak tersedia</p>
+            <p className="text-caption text-destructive mt-1.5 ml-1">Rute tidak tersedia pada pasangan rute ini</p>
           )}
         </div>
 
