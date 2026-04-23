@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShuttleStore, getArrivalTime } from '@/store/shuttleStore';
-import { ArrowLeft, CreditCard, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CreditCard, AlertCircle, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 export default function ConfirmPage() {
@@ -156,7 +156,17 @@ export default function ConfirmPage() {
       <Sheet open={policyOpen} onOpenChange={setPolicyOpen}>
         <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto rounded-t-3xl">
           <SheetHeader className="mb-4">
-            <SheetTitle className="text-h2 text-ink">Kebijakan Layanan Shuttle BINUS</SheetTitle>
+            <div className="flex items-center justify-between gap-3">
+              <SheetTitle className="text-h2 text-ink">Kebijakan Layanan Shuttle BINUS</SheetTitle>
+              <button
+                type="button"
+                onClick={() => setPolicyOpen(false)}
+                aria-label="Tutup"
+                className="text-ink-light hover:text-ink transition-colors shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </SheetHeader>
           <div className="space-y-4 text-caption text-ink pb-6">
             <PolicyItem
